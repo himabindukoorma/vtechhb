@@ -1,0 +1,36 @@
+name: AzureSpringCloud
+on: push
+env:
+  ASC_PACKAGE_PATH: ${{ github.workspace }}
+  AZURE_SUBSCRIPTION: Azure subscription 1
+
+jobs:
+  deploy_to_production:
+    runs-on: ubuntu-latest
+    name: deploy to production with artifact
+    steps:
+      - name: Checkout GitHub Action
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+
+      - name: maven build, clean
+        run: |
+          cd ./app
+          mvn clean package
+
+      - name: Login via Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App1
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'examplehb'
+          publish-profile: '<<publishData><publishProfile profileName="examplehb - Web Deploy" publishMethod="MSDeploy" publishUrl="examplehb.scm.azurewebsites.net:443" msdeploySite="examplehb" userName="$examplehb" userPWD="BwxAktKfyC1tnMtac0gB0ThHbK6PvtdYDBeB6GT93uX7K2jpXoW7zz3FgnL9" destinationAppUrl="http://examplehb.azurewebsites.net" SQLServerDBConnectionString="" mySQLDBConnectionString="" hostingProviderForumLink="" controlPanelLink="http://windows.azure.com" webSystem="WebSites"><databases /></publishProfile><publishProfile profileName="examplehb - FTP" publishMethod="FTP" publishUrl="ftps://waws-prod-ln1-119.ftp.azurewebsites.windows.net/site/wwwroot" ftpPassiveMode="True" userName="examplehb\$examplehb" userPWD="BwxAktKfyC1tnMtac0gB0ThHbK6PvtdYDBeB6GT93uX7K2jpXoW7zz3FgnL9" destinationAppUrl="http://examplehb.azurewebsites.net" SQLServerDBConnectionString="" mySQLDBConnectionString="" hostingProviderForumLink="" controlPanelLink="http://windows.azure.com" webSystem="WebSites"><databases /></publishProfile><publishProfile profileName="examplehb - Zip Deploy" publishMethod="ZipDeploy" publishUrl="examplehb.scm.azurewebsites.net:443" userName="$examplehb" userPWD="BwxAktKfyC1tnMtac0gB0ThHbK6PvtdYDBeB6GT93uX7K2jpXoW7zz3FgnL9" destinationAppUrl="http://examplehb.azurewebsites.net" SQLServerDBConnectionString="" mySQLDBConnectionString="" hostingProviderForumLink="" controlPanelLink="http://windows.azure.com" webSystem="WebSites"><databases /></publishProfile></publishData>'
+          package: ${{ env.ASC_PACKAGE_PATH }}/**/*.jar
